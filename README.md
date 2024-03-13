@@ -1,7 +1,5 @@
 # db-go
 
-Generic database package for Go (golang). This Go package provides a set of tools for working with databases, including managing connections, executing commands, and handling rows and tables.
-
 The Database Go Package is a collection of tools for working with databases in Go applications. It provides functionalities for managing database connections, executing commands, and handling rows and tables. With this package, developers can easily interact with databases in their Go projects, making database-related tasks more efficient and straightforward.
 
 ## Install
