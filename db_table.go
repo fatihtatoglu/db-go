@@ -51,4 +51,8 @@ func (dt *DBTable) MarshalJSON() ([]byte, error) {
 	return json.Marshal(tableMap)
 }
 
+func (dt *DBTable) GetRows() []DBRow {
+	return dt.rows
+}
+
 // TODO: UnmarshalJSON methodunu ekle.
