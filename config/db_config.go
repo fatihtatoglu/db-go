@@ -1,4 +1,4 @@
-package db
+package db_config
 
 type DBConfig struct {
 	user     string
@@ -16,4 +16,24 @@ func CreateNewDBConfig(user string, pass string, host string, port int, dbName s
 		port:     port,
 		database: dbName,
 	}
+}
+
+func (c *DBConfig) GetUser() string {
+	return c.user
+}
+
+func (c *DBConfig) GetPassword() string {
+	return c.password
+}
+
+func (c *DBConfig) GetHost() string {
+	return c.host
+}
+
+func (c *DBConfig) GetPort() int {
+	return c.port
+}
+
+func (c *DBConfig) GetDatabaseName() string {
+	return c.database
 }

@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+
+	db_config "github.com/fatihtatoglu/db-go/config"
 )
 
 const (
@@ -23,7 +25,7 @@ type dbConnection struct {
 	connection *sql.DB
 }
 
-func CreateNewDBConnection(driver string, config DBConfig) (DBConnectionInterface, error) {
+func CreateNewDBConnection(driver string, config db_config.DBConfig) (DBConnectionInterface, error) {
 	if driver == "" {
 		return nil, errors.New(INVALID_DRIVER)
 	}
@@ -31,7 +33,7 @@ func CreateNewDBConnection(driver string, config DBConfig) (DBConnectionInterfac
 	var dsn string
 	switch driver {
 	case "mysql":
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.user, config.password, config.host, config.port, config.database)
+		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.GetUser(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetDatabaseName())
 	default:
 		dsn = ""
 	}
