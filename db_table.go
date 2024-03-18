@@ -55,4 +55,8 @@ func (dt *DBTable) GetRows() []DBRow {
 	return dt.rows
 }
 
+func (dt *DBTable) GetColumns() []DBColumn {
+	return dt.columns
+}
+
 // TODO: UnmarshalJSON methodunu ekle.
