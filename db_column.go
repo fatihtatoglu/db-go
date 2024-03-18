@@ -18,6 +18,15 @@ type DBColumn struct {
 	Table     *DBTable
 }
 
+func CreateNewDBColumn(name string, ordinal int) DBColumn {
+	col := DBColumn{
+		name:    name,
+		ordinal: ordinal,
+	}
+
+	return col
+}
+
 func CreateNewDBColumnFromColumnType(ct sql.ColumnType, ordinal int) DBColumn {
 	col := DBColumn{
 		name:    ct.Name(),
