@@ -2,14 +2,10 @@ package db
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 
 	db_config "github.com/fatihtatoglu/db-go/config"
-)
-
-const (
-	INVALID_DRIVER = "driver is empty or invalid"
+	db_errors "github.com/fatihtatoglu/db-go/error"
 )
 
 type DBConnectionInterface interface {
@@ -27,7 +23,7 @@ type dbConnection struct {
 
 func CreateNewDBConnection(driver string, config db_config.DBConfig) (DBConnectionInterface, error) {
 	if driver == "" {
-		return nil, errors.New(INVALID_DRIVER)
+		return nil, db_errors.ConnectionInvalidDriverError()
 	}
 
 	var dsn string
