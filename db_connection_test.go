@@ -1,115 +1,12 @@
 package db
 
 import (
-	"context"
 	"database/sql"
-	"database/sql/driver"
-	"errors"
 	"os"
 	"testing"
 
-	db_config "github.com/fatihtatoglu/db-go/config"
 	db_errors "github.com/fatihtatoglu/db-go/error"
 )
-
-type MockDriver struct {
-	connection            *MockConn
-	closeErrorMessage     string
-	connectorErrorMessage string
-	pingerErrorMessage    string
-}
-
-type MockConn struct {
-	driver *MockDriver
-}
-
-type MockConnector struct {
-	driver     *MockDriver
-	connection *MockConn
-}
-
-func (d *MockDriver) CleanErrorMessage() {
-	d.closeErrorMessage = ""
-	d.connectorErrorMessage = ""
-	d.pingerErrorMessage = ""
-}
-
-func (d *MockDriver) SetCloseErrorMessage(message string) {
-	d.closeErrorMessage = message
-}
-
-func (d *MockDriver) SetConnectorErrorMessage(message string) {
-	d.connectorErrorMessage = message
-}
-
-func (d *MockDriver) SetPingerErrorMessage(message string) {
-	d.pingerErrorMessage = message
-}
-
-// Fake-it
-func (m *MockConn) Begin() (driver.Tx, error)                 { return nil, nil }
-func (m *MockConn) Close() error                              { return nil }
-func (m *MockConn) Prepare(query string) (driver.Stmt, error) { return nil, nil }
-
-// Fake-it
-func (m *MockConn) Ping(ctx context.Context) error {
-	if m.driver.pingerErrorMessage != "" {
-		return errors.New(m.driver.pingerErrorMessage)
-	}
-
-	return nil
-}
-
-// Fake-it
-func (d *MockDriver) Open(name string) (driver.Conn, error) {
-	if d.closeErrorMessage != "" {
-		return nil, errors.New(d.closeErrorMessage)
-	}
-
-	d.connection = &MockConn{
-		driver: d,
-	}
-
-	return d.connection, nil
-}
-
-// Fake-it
-func (d *MockDriver) OpenConnector(name string) (driver.Connector, error) {
-	if d.connectorErrorMessage != "" {
-		return nil, errors.New(d.connectorErrorMessage)
-	}
-
-	// to initialize the conn struct
-	d.Open(name)
-
-	return &MockConnector{
-		driver:     d,
-		connection: d.connection,
-	}, nil
-}
-
-// Fake-it
-func (m *MockConnector) Connect(context.Context) (driver.Conn, error) {
-	if m.driver.connectorErrorMessage != "" {
-		return nil, errors.New(m.driver.connectorErrorMessage)
-	}
-
-	return m.connection, nil
-}
-
-// Fake-it
-func (m *MockConnector) Driver() driver.Driver {
-	return m.driver
-}
-
-// Fake-it
-func (m *MockConnector) Close() error {
-	if m.driver.closeErrorMessage != "" {
-		return errors.New(m.driver.closeErrorMessage)
-	}
-
-	return nil
-}
 
 var mockDriver *MockDriver
 var driverName string
@@ -126,9 +23,10 @@ func TestMain(m *testing.M) {
 func TestCreateNewDBConnection(t *testing.T) {
 	// Arrange
 	driverName := "mysql"
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
+
 	// Act
-	connection, err := CreateNewDBConnection(driverName, *config)
+	connection, err := CreateNewDBConnection(driverName, dsn)
 
 	// Assert
 	if err != nil {
@@ -147,17 +45,17 @@ func TestCreateNewDBConnection_Invalid_Driver(t *testing.T) {
 		driver         string
 		expectedErrMsg string
 	}{
-		{"Empty driver", "", db_errors.ConnectionInvalidDriverErrorMessage},
-		{"Invalid driver", "invalid-driver", db_errors.ConnectionInvalidDriverErrorMessage},
+		{"Empty driver", "", db_errors.Connection_InvalidDriverErrorMessage},
+		{"Invalid driver", "invalid-driver", db_errors.Connection_InvalidDriverErrorMessage},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.testName, func(t *testing.T) {
 			// Arrange
-			config := getDBConfig()
+			dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
 			// Act
-			_, err := CreateNewDBConnection(tc.driver, *config)
+			_, err := CreateNewDBConnection(tc.driver, dsn)
 
 			// Assert
 			if err == nil {
@@ -168,6 +66,19 @@ func TestCreateNewDBConnection_Invalid_Driver(t *testing.T) {
 				t.Errorf("expected error message: %s, got: %s", tc.expectedErrMsg, err.Error())
 			}
 		})
+	}
+}
+
+func TestCreateNewDBConnection_Empty_DSN(t *testing.T) {
+	// Arrange
+	dsn := ""
+
+	// Act
+	_, err := CreateNewDBConnection("mysql", dsn)
+
+	// Assert
+	if err == nil {
+		t.Error("expected error not occurred")
 	}
 }
 
@@ -205,9 +116,9 @@ func TestOpen(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			config := getDBConfig()
+			dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-			connection, _ := CreateNewDBConnection(driverName, *config)
+			connection, _ := CreateNewDBConnection(driverName, dsn)
 
 			test.arrangeFunc()
 
@@ -234,9 +145,9 @@ func TestOpen(t *testing.T) {
 
 func TestClose(t *testing.T) {
 	// Arrange
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-	connection, _ := CreateNewDBConnection(driverName, *config)
+	connection, _ := CreateNewDBConnection(driverName, dsn)
 
 	connection.Open()
 
@@ -251,9 +162,9 @@ func TestClose(t *testing.T) {
 
 func TestClose_With_Error(t *testing.T) {
 	// Arrange
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-	connection, _ := CreateNewDBConnection(driverName, *config)
+	connection, _ := CreateNewDBConnection(driverName, dsn)
 
 	mockDriver.SetCloseErrorMessage("close failed")
 
@@ -270,9 +181,9 @@ func TestClose_With_Error(t *testing.T) {
 
 func Test_getConnection(t *testing.T) {
 	// Arrange
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-	connection, _ := CreateNewDBConnection(driverName, *config)
+	connection, _ := CreateNewDBConnection(driverName, dsn)
 
 	connection.Open()
 
@@ -287,9 +198,9 @@ func Test_getConnection(t *testing.T) {
 
 func Test_getConnection_Without_Open(t *testing.T) {
 	// Arrange
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-	connection, _ := CreateNewDBConnection(driverName, *config)
+	connection, _ := CreateNewDBConnection(driverName, dsn)
 
 	// Act
 	db := connection.getConnection()
@@ -302,9 +213,9 @@ func Test_getConnection_Without_Open(t *testing.T) {
 
 func TestClose_Without_Opening(t *testing.T) {
 	// Arrange
-	config := getDBConfig()
+	dsn := "testuser:testpass@tcp(localhost:3306)/testdb"
 
-	connection, _ := CreateNewDBConnection(driverName, *config)
+	connection, _ := CreateNewDBConnection(driverName, dsn)
 
 	// Act
 	err := connection.Close()
@@ -313,9 +224,4 @@ func TestClose_Without_Opening(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unexpected error: %v", err)
 	}
-}
-
-func getDBConfig() *db_config.DBConfig {
-	config := db_config.CreateNewDBConfig("testuser", "testpassword", "localhost", 3306, "test")
-	return config
 }

@@ -1,5 +1,7 @@
 package db_config
 
+import "fmt"
+
 type DBConfig struct {
 	user     string
 	password string
@@ -36,4 +38,8 @@ func (c *DBConfig) GetPort() int {
 
 func (c *DBConfig) GetDatabaseName() string {
 	return c.database
+}
+
+func (c *DBConfig) GetMysqlDSN() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", c.user, c.password, c.host, c.port, c.database)
 }

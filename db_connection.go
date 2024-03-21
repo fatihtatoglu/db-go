@@ -2,9 +2,8 @@ package db
 
 import (
 	"database/sql"
-	"fmt"
+	"slices"
 
-	db_config "github.com/fatihtatoglu/db-go/config"
 	db_errors "github.com/fatihtatoglu/db-go/error"
 )
 
@@ -20,21 +19,17 @@ type dbConnection struct {
 	db     *sql.DB
 }
 
-func CreateNewDBConnection(driver string, config db_config.DBConfig) (DBConnectionInterface, error) {
+func CreateNewDBConnection(driver string, dsn string) (DBConnectionInterface, error) {
 	if driver == "" {
 		return nil, db_errors.ConnectionInvalidDriverError()
 	}
 
-	var dsn string
-	switch driver {
-	case "mysql":
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.GetUser(), config.GetPassword(), config.GetHost(), config.GetPort(), config.GetDatabaseName())
-	default:
-		dsn = ""
+	if !slices.Contains(sql.Drivers(), driver) {
+		return nil, db_errors.ConnectionInvalidDriverError()
 	}
 
 	if dsn == "" {
-		return nil, db_errors.ConnectionInvalidDriverError()
+		return nil, db_errors.ConnectionEmptyDSNError()
 	}
 
 	return &dbConnection{

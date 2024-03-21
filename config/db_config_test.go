@@ -33,3 +33,24 @@ func TestCreateNewDBConfig(t *testing.T) {
 		t.Errorf("Expected database name: %s, got: %s", dbName, config.GetDatabaseName())
 	}
 }
+
+func TestMySqlDSN(t *testing.T) {
+	// Arrange
+	expectedDSN := "testuser:testpass@tcp(localhost:3306)/testdb"
+
+	user := "testuser"
+	pass := "testpass"
+	host := "localhost"
+	port := 3306
+	dbName := "testdb"
+
+	config := CreateNewDBConfig(user, pass, host, port, dbName)
+
+	// Act
+	dsn := config.GetMysqlDSN()
+
+	// Assert
+	if expectedDSN != dsn {
+		t.Errorf("Expected DSN: %s, got: %s", expectedDSN, dsn)
+	}
+}

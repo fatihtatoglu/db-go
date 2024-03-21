@@ -13,19 +13,24 @@ func TestErrors(t *testing.T) {
 		expectedErrMsg string
 	}{
 		{
-			name:          "ColumnNotFoundError",
+			name:          "Column_NotFoundError",
 			errorFunc:     ColumnNotFoundError,
-			expectedError: errors.New(ColumnNotFoundErrorMessage),
+			expectedError: errors.New(Column_NotFoundErrorMessage),
 		},
 		{
-			name:          "ColumnIndexOutOfRangeError",
+			name:          "Column_IndexOutOfRangeError",
 			errorFunc:     ColumnIndexOutOfRangeError,
-			expectedError: errors.New(ColumnIndexOutOfRangeErrorMessage),
+			expectedError: errors.New(Column_IndexOutOfRangeErrorMessage),
 		},
 		{
-			name:          "ConnectionInvalidDriverError",
+			name:          "Connection_InvalidDriverError",
 			errorFunc:     ConnectionInvalidDriverError,
-			expectedError: errors.New(ConnectionInvalidDriverErrorMessage),
+			expectedError: errors.New(Connection_InvalidDriverErrorMessage),
+		},
+		{
+			name:          "Connection_EmptyDSNError",
+			errorFunc:     ConnectionEmptyDSNError,
+			expectedError: errors.New(Connection_EmptyDSNErrorMessage),
 		},
 	}
 
