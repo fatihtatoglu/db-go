@@ -11,14 +11,13 @@ import (
 type DBConnectionInterface interface {
 	Open() error
 	Close() error
-
 	getConnection() *sql.DB
 }
 
 type dbConnection struct {
-	dsn        string
-	driver     string
-	connection *sql.DB
+	dsn    string
+	driver string
+	db     *sql.DB
 }
 
 func CreateNewDBConnection(driver string, config db_config.DBConfig) (DBConnectionInterface, error) {
@@ -34,14 +33,18 @@ func CreateNewDBConnection(driver string, config db_config.DBConfig) (DBConnecti
 		dsn = ""
 	}
 
+	if dsn == "" {
+		return nil, db_errors.ConnectionInvalidDriverError()
+	}
+
 	return &dbConnection{
 		dsn:    dsn,
 		driver: driver,
 	}, nil
 }
 
-func (dbc *dbConnection) Open() error {
-	connection, err := sql.Open(dbc.driver, dbc.dsn)
+func (c *dbConnection) Open() error {
+	connection, err := sql.Open(c.driver, c.dsn)
 	if err != nil {
 		return err
 	}
@@ -51,19 +54,18 @@ func (dbc *dbConnection) Open() error {
 		return err
 	}
 
-	dbc.connection = connection
+	c.db = connection
 	return nil
 }
 
-func (dbc *dbConnection) Close() error {
-	if dbc.connection == nil {
+func (c *dbConnection) Close() error {
+	if c.db == nil {
 		return nil
 	}
 
-	err := dbc.connection.Close()
-	return err
+	return c.db.Close()
 }
 
-func (dbc *dbConnection) getConnection() *sql.DB {
-	return dbc.connection
+func (c *dbConnection) getConnection() *sql.DB {
+	return c.db
 }
