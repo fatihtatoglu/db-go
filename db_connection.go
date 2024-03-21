@@ -2,38 +2,34 @@ package db
 
 import (
 	"database/sql"
-	"errors"
-	"fmt"
-)
+	"slices"
 
-const (
-	INVALID_DRIVER = "driver is empty or invalid"
+	db_errors "github.com/fatihtatoglu/db-go/error"
 )
 
 type DBConnectionInterface interface {
 	Open() error
 	Close() error
-
 	getConnection() *sql.DB
 }
 
 type dbConnection struct {
-	dsn        string
-	driver     string
-	connection *sql.DB
+	dsn    string
+	driver string
+	db     *sql.DB
 }
 
-func CreateNewDBConnection(driver string, config DBConfig) (DBConnectionInterface, error) {
+func CreateNewDBConnection(driver string, dsn string) (DBConnectionInterface, error) {
 	if driver == "" {
-		return nil, errors.New(INVALID_DRIVER)
+		return nil, db_errors.ConnectionInvalidDriverError()
 	}
 
-	var dsn string
-	switch driver {
-	case "mysql":
-		dsn = fmt.Sprintf("%s:%s@tcp(%s:%d)/%s", config.user, config.password, config.host, config.port, config.database)
-	default:
-		dsn = ""
+	if !slices.Contains(sql.Drivers(), driver) {
+		return nil, db_errors.ConnectionInvalidDriverError()
+	}
+
+	if dsn == "" {
+		return nil, db_errors.ConnectionEmptyDSNError()
 	}
 
 	return &dbConnection{
@@ -42,8 +38,8 @@ func CreateNewDBConnection(driver string, config DBConfig) (DBConnectionInterfac
 	}, nil
 }
 
-func (dbc *dbConnection) Open() error {
-	connection, err := sql.Open(dbc.driver, dbc.dsn)
+func (c *dbConnection) Open() error {
+	connection, err := sql.Open(c.driver, c.dsn)
 	if err != nil {
 		return err
 	}
@@ -53,19 +49,18 @@ func (dbc *dbConnection) Open() error {
 		return err
 	}
 
-	dbc.connection = connection
+	c.db = connection
 	return nil
 }
 
-func (dbc *dbConnection) Close() error {
-	if dbc.connection == nil {
+func (c *dbConnection) Close() error {
+	if c.db == nil {
 		return nil
 	}
 
-	err := dbc.connection.Close()
-	return err
+	return c.db.Close()
 }
 
-func (dbc *dbConnection) getConnection() *sql.DB {
-	return dbc.connection
+func (c *dbConnection) getConnection() *sql.DB {
+	return c.db
 }

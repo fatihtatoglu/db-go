@@ -34,8 +34,8 @@ func TestSetItemByIndex_IndexOutOfRange(t *testing.T) {
 		index          int
 		expectedErrMsg string
 	}{
-		{"Negative index", -1, db_errors.ColumnIndexOutOfRangeErrorMessage},
-		{"Index greater than column count", 99, db_errors.ColumnIndexOutOfRangeErrorMessage},
+		{"Negative index", -1, db_errors.Column_IndexOutOfRangeErrorMessage},
+		{"Index greater than column count", 99, db_errors.Column_IndexOutOfRangeErrorMessage},
 	}
 
 	for _, tc := range testCases {
@@ -75,8 +75,8 @@ func TestGetItemByIndex_IndexOutOfRange(t *testing.T) {
 		index          int
 		expectedErrMsg string
 	}{
-		{"Negative index", -1, db_errors.ColumnIndexOutOfRangeErrorMessage},
-		{"Index greater than column count", 99, db_errors.ColumnIndexOutOfRangeErrorMessage},
+		{"Negative index", -1, db_errors.Column_IndexOutOfRangeErrorMessage},
+		{"Index greater than column count", 99, db_errors.Column_IndexOutOfRangeErrorMessage},
 	}
 
 	for _, tc := range testCases {
@@ -132,7 +132,7 @@ func TestSetItemByName_NotExisting_Name(t *testing.T) {
 	err := sut.SetItemByName("not-existing-column-name", "test")
 
 	// Assert
-	assertError(t, err, db_errors.ColumnNotFoundErrorMessage)
+	assertError(t, err, db_errors.Column_NotFoundErrorMessage)
 }
 
 func TestGetItemByName(t *testing.T) {
@@ -163,7 +163,7 @@ func TestGetItemByName_NotExisting_Name(t *testing.T) {
 	_, err := row.GetItemByName("not-existing-column-name")
 
 	// Assert
-	assertError(t, err, db_errors.ColumnNotFoundErrorMessage)
+	assertError(t, err, db_errors.Column_NotFoundErrorMessage)
 }
 
 func createTestTableWithColumns(columnNames []string) *DBTable {
